@@ -6,6 +6,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import os
 from dotenv import load_dotenv
+import base64
 
 # NEW: Flask para manter o bot vivo
 from flask import Flask
@@ -29,6 +30,11 @@ t.start()
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
+# NEW: Salva e decodifica o credentials.json via base64
+cred_data = base64.b64decode(os.getenv("GOOGLE_CREDS_B64"))
+with open("credentials.json", "wb") as f:
+    f.write(cred_data)
+
 # Logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
@@ -51,7 +57,6 @@ CHECKIN_TOPIC, CHECKOUT_PRACTICE, CHECKOUT_FEELING = range(3)
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Olá! Use /checkin para começar seus estudos e /checkout quando terminar.")
-
     frases = [
         "Você é mais forte do que imagina. Continue firme! 💪",
         "O esforço de hoje é o sucesso de amanhã. 🚀",
@@ -64,13 +69,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # /checkin
 async def checkin(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    topics = content_sheet.col_values(1)[1:]  # Pega da aba Conteudo, ignora cabeçalho
+    topics = content_sheet.col_values(1)[1:]
     context.user_data["topics"] = topics
     lista = "\n".join([f"{i+1}. {topic}" for i, topic in enumerate(topics)])
     await update.message.reply_text(f"O que você vai estudar hoje?\n\n{lista}\n\nResponda com o número do tópico.")
     return CHECKIN_TOPIC
 
-# trata escolha do checkin
 async def handle_checkin_topic(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     try:
@@ -79,7 +83,6 @@ async def handle_checkin_topic(update: Update, context: ContextTypes.DEFAULT_TYP
     except (ValueError, IndexError):
         await update.message.reply_text("Por favor, envie um número válido correspondente ao tópico.")
         return CHECKIN_TOPIC
-
     user_sessions[user_id] = {
         "user": update.effective_user.username,
         "topic": topico,
@@ -95,15 +98,12 @@ async def checkout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return CHECKOUT_PRACTICE
 
-# trata prática
 async def handle_checkout_practice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if user_id not in user_sessions:
         await update.message.reply_text("Você precisa fazer /checkin antes de usar /checkout.")
         return ConversationHandler.END
-
     user_sessions[user_id]["practice"] = update.message.text
-
     sentimentos = [
         "1. Consegui aprender bem 👍",
         "2. Achei desafiador, mas foi bom 💡",
@@ -114,11 +114,9 @@ async def handle_checkout_practice(update: Update, context: ContextTypes.DEFAULT
     await update.message.reply_text("Como se sentiu ao estudar?\n\n" + "\n".join(sentimentos))
     return CHECKOUT_FEELING
 
-# trata sentimento e finaliza
 async def handle_checkout_feeling(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     input_text = update.message.text.strip()
-
     sentimentos_map = {
         "1": "Consegui aprender bem",
         "2": "Achei desafiador, mas foi bom",
@@ -126,15 +124,12 @@ async def handle_checkout_feeling(update: Update, context: ContextTypes.DEFAULT_
         "4": "Tive dificuldade",
         "5": "Não consegui focar"
     }
-
     sentimento = sentimentos_map.get(input_text, update.message.text)
     session = user_sessions.pop(user_id, None)
-
     if session:
         end_time = datetime.now()
         duration = end_time - session["start_time"]
         minutes = int(duration.total_seconds() / 60)
-
         row = [
             session["user"],
             session["start_time"].strftime("%d/%m/%Y"),
@@ -143,15 +138,12 @@ async def handle_checkout_feeling(update: Update, context: ContextTypes.DEFAULT_
             session["practice"],
             sentimento
         ]
-
         log_sheet.append_row(row)
-
         user_display = (
             f"@{update.effective_user.username}"
             if update.effective_user.username
             else update.effective_user.first_name
         )
-
         message = (
             f"🦉 *{user_display} — Check-in de {session['start_time'].strftime('%d/%m')}*\n\n"
             f"🕒 Tempo: {minutes}min\n"
@@ -159,28 +151,22 @@ async def handle_checkout_feeling(update: Update, context: ContextTypes.DEFAULT_
             f"🚠 Prática: {session['practice']}\n"
             f"❤️ Sentimento: {sentimento}"
         )
-
         await context.bot.send_message(chat_id=-4634966616, text=message, parse_mode="Markdown")
-
     return ConversationHandler.END
 
-# comando para descobrir chat_id
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat.id
     await update.message.reply_text(f"O chat_id do grupo é: {chat_id}")
 
-# inicia o bot
+# Inicializa o bot
 if __name__ == '__main__':
     app = ApplicationBuilder().token(TOKEN).build()
-
     app.add_handler(CommandHandler("start", start))
-
     checkin_handler = ConversationHandler(
         entry_points=[CommandHandler("checkin", checkin)],
         states={CHECKIN_TOPIC: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_checkin_topic)]},
         fallbacks=[]
     )
-
     checkout_handler = ConversationHandler(
         entry_points=[CommandHandler("checkout", checkout)],
         states={
@@ -189,9 +175,7 @@ if __name__ == '__main__':
         },
         fallbacks=[]
     )
-
     app.add_handler(checkin_handler)
     app.add_handler(checkout_handler)
     app.add_handler(CommandHandler("getid", get_chat_id))
-
     app.run_polling()
