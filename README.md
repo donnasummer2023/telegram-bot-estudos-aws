@@ -1,24 +1,27 @@
-# 🤖 Bot Telegram de Estudo AWS
+# 🤖 AWS Study Bot Telegram
 
-Este bot foi criado para auxiliar no registro diário de estudos para certificações da AWS. Ele interage com o usuário, registra dados no Google Sheets e motiva com mensagens positivas (previamente configuradas).
+Um bot de Telegram para registrar sessões de estudo focadas em AWS. Ele permite iniciar e finalizar sessões, registrar o que foi estudado, práticas realizadas e sentimento ao final. Todos os dados são registrados em uma planilha do Google Sheets.
 
-## 🔧 Funcionalidades
+## Funcionalidades
 
-- `/start` — inicia a conversa e envia mensagem motivacional
-- `/checkin` — escolhe o tópico de estudo
-- `/checkout` — registra o que foi praticado e sentimento após o estudo
+- Comando `/checkin`: inicia uma sessão de estudo, permitindo escolher um tópico da planilha.
+- Comando `/checkout`: finaliza a sessão, perguntando sobre prática e sentimento.
+- Registros automáticos em uma Google Sheet (data, duração, conteúdo, prática, sentimento).
+- Integração com grupo no Telegram para envio de resumo do estudo.
+- Deploy contínuo com Railway.
 
-## 📚 Tecnologias
+## Tecnologias
 
 - Python
-- Telegram Bot API
-- Google Sheets API (via gspread)
-- Railway (hospedagem)
-- Flask (keep alive)
-- dotenv
+- `python-telegram-bot`
+- `gspread` para integração com Google Sheets
+- `Flask` para manter o bot ativo no Railway
+- Deploy via [Railway](https://railway.app/)
+- Monitoramento opcional com [UptimeRobot](https://uptimerobot.com/)
 
-## 📦 Rodando localmente
+## Como rodar localmente
 
-1. Clone o repositório
-2. Crie o arquivo `.env` com base no `.env.example`
-3. Instale as dependências:
+1. Clone o projeto:
+```bash
+git clone https://github.com/seu-usuario/aws-study-bot.git
+cd aws-study-bot
