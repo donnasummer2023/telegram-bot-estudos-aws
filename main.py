@@ -57,14 +57,16 @@ CHECKIN_TOPIC, CHECKOUT_PRACTICE, CHECKOUT_FEELING = range(3)
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensagem = (
-        "Olá, time de estudos AWS!\n\n"
-        "Hoje é dia de mais um passo rumo à certificação!\n"
-        "Escolha um tópico, foque por pelo menos 30 minutos e não se esqueça de registrar com /checkin e /checkout.\n\n"
-        "“Pequenos progressos diários levam a grandes conquistas.”\n"
-        "— Siga firme!\n\n"
-        "#AWS #Estudos #Certificação #BoraVoar"
+        "🌟 *Olá, time de estudos AWS!*\n\n"
+        "📅 Hoje é dia de mais um passo rumo à *certificação AWS Certified Cloud Practitioner*!\n\n"
+        "🎯 Escolha um tópico\n"
+        "⏱️ Foque por pelo menos *30 minutos*\n"
+        "📝 Registre com /checkin e /checkout\n\n"
+        "💬 “*Pequenos progressos diários levam a grandes conquistas.*”\n"
+        "_— Siga firme!_\n\n"
+        "#AWS #Estudos #Certificação #BoraVoar 🚀"
     )
-    await update.message.reply_text(mensagem)
+    await update.message.reply_text(mensagem, parse_mode="Markdown")
 
 # /checkin
 async def checkin(update: Update, context: ContextTypes.DEFAULT_TYPE):
