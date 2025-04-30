@@ -56,16 +56,15 @@ CHECKIN_TOPIC, CHECKOUT_PRACTICE, CHECKOUT_FEELING = range(3)
 
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Olá! Use /checkin para começar seus estudos e /checkout quando terminar.")
-    frases = [
-        "Você é mais forte do que imagina. Continue firme! 💪",
-        "O esforço de hoje é o sucesso de amanhã. 🚀",
-        "Cada passo te leva mais perto da certificação! 🧠",
-        "Não desista! Grandes conquistas levam tempo. ⏳",
-        "Estudar com foco é superpoder. Use o seu! ⚡️",
-    ]
-    index = datetime.now().timetuple().tm_yday % len(frases)
-    await update.message.reply_text(frases[index])
+    mensagem = (
+        "Olá, time de estudos AWS!\n\n"
+        "Hoje é dia de mais um passo rumo à certificação!\n"
+        "Escolha um tópico, foque por pelo menos 30 minutos e não se esqueça de registrar com /checkin e /checkout.\n\n"
+        "“Pequenos progressos diários levam a grandes conquistas.”\n"
+        "— Siga firme!\n\n"
+        "#AWS #Estudos #Certificação #BoraVoar"
+    )
+    await update.message.reply_text(mensagem)
 
 # /checkin
 async def checkin(update: Update, context: ContextTypes.DEFAULT_TYPE):
