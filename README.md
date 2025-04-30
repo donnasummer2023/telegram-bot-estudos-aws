@@ -17,7 +17,6 @@ Um bot de Telegram para registrar sessões de estudo focadas em AWS. Ele permite
 - `gspread` para integração com Google Sheets
 - `Flask` para manter o bot ativo no Railway
 - Deploy via [Railway](https://railway.app/)
-- Monitoramento opcional com [UptimeRobot](https://uptimerobot.com/)
 
 ## Como rodar localmente
 
