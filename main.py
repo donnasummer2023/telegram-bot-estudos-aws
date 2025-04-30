@@ -61,7 +61,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "📅 Hoje é dia de mais um passo rumo à *certificação AWS Certified Cloud Practitioner*!\n\n"
         "🎯 Escolha um tópico\n"
         "⏱️ Foque por pelo menos *30 minutos*\n"
-        "📝 Registre com /checkin e /checkout\n\n"
+        "📝 Registre com /checkin (ao iniciar) e /checkout (ao finalizar)\n\n"
         "💬 “*Pequenos progressos diários levam a grandes conquistas.*”\n"
         "_— Siga firme!_\n\n"
         "#AWS #Estudos #Certificação #BoraVoar 🚀"
