@@ -152,7 +152,7 @@ async def handle_checkout_feeling(update: Update, context: ContextTypes.DEFAULT_
             f"🚠 Prática: {session['practice']}\n"
             f"❤️ Sentimento: {sentimento}"
         )
-        await context.bot.send_message(chat_id=-4634966616, text=message, parse_mode="Markdown")
+        await context.bot.send_message(chat_id=-1002591951774, text=message, parse_mode="Markdown")
     return ConversationHandler.END
 
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
