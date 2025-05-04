@@ -8,7 +8,7 @@ import os
 from dotenv import load_dotenv
 import base64
 
-# NEW: Flask para manter o bot vivo
+# Flask para manter o bot vivo
 from flask import Flask
 import threading
 
@@ -30,7 +30,9 @@ t.start()
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-# NEW: Salva e decodifica o credentials.json via base64
+# Garante que .env e credentials.json estejam no .gitignore
+
+# Decodifica o credentials.json via base64
 cred_data = base64.b64decode(os.getenv("GOOGLE_CREDS_B64"))
 with open("credentials.json", "wb") as f:
     f.write(cred_data)
@@ -50,11 +52,24 @@ client = gspread.authorize(creds)
 log_sheet = client.open("Log de Estudos AWS").worksheet("Log")
 content_sheet = client.open("Log de Estudos AWS").worksheet("Conteudo")
 
+# Whitelist de usuários permitidos
+ALLOWED_USERS = [964629980]  # Substitua com os IDs dos usuários confiáveis
+
+def restricted(func):
+    async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
+        user_id = update.effective_user.id
+        if user_id not in ALLOWED_USERS:
+            await update.message.reply_text("❌ Acesso negado. Você não tem permissão para usar este bot.")
+            return ConversationHandler.END
+        return await func(update, context, *args, **kwargs)
+    return wrapper
+
 # Variáveis do bot
 user_sessions = {}
 CHECKIN_TOPIC, CHECKOUT_PRACTICE, CHECKOUT_FEELING = range(3)
 
 # /start
+@restricted
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensagem = (
         "🌟 *Olá, time de estudos AWS!*\n\n"
@@ -69,8 +84,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(mensagem, parse_mode="Markdown")
 
 # /checkin
+@restricted
 async def checkin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     topics = content_sheet.col_values(1)[1:]
+    if not topics:
+        await update.message.reply_text("❌ Nenhum tópico encontrado.")
+        return ConversationHandler.END
     context.user_data["topics"] = topics
     lista = "\n".join([f"{i+1}. {topic}" for i, topic in enumerate(topics)])
     await update.message.reply_text(f"O que você vai estudar hoje?\n\n{lista}\n\nResponda com o número do tópico.")
@@ -93,6 +112,7 @@ async def handle_checkin_topic(update: Update, context: ContextTypes.DEFAULT_TYP
     return ConversationHandler.END
 
 # /checkout
+@restricted
 async def checkout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "O que você praticou hoje? \n\nSe não praticou, apenas responda: 'Nada. Apenas teoria hoje.'"
@@ -104,7 +124,7 @@ async def handle_checkout_practice(update: Update, context: ContextTypes.DEFAULT
     if user_id not in user_sessions:
         await update.message.reply_text("Você precisa fazer /checkin antes de usar /checkout.")
         return ConversationHandler.END
-    user_sessions[user_id]["practice"] = update.message.text
+    user_sessions[user_id]["practice"] = update.message.text.strip()
     sentimentos = [
         "1. Consegui aprender bem 👍",
         "2. Achei desafiador, mas foi bom 💡",
@@ -125,7 +145,7 @@ async def handle_checkout_feeling(update: Update, context: ContextTypes.DEFAULT_
         "4": "Tive dificuldade",
         "5": "Não consegui focar"
     }
-    sentimento = sentimentos_map.get(input_text, update.message.text)
+    sentimento = sentimentos_map.get(input_text, input_text)
     session = user_sessions.pop(user_id, None)
     if session:
         end_time = datetime.now()
@@ -155,6 +175,8 @@ async def handle_checkout_feeling(update: Update, context: ContextTypes.DEFAULT_
         await context.bot.send_message(chat_id=-1002591951774, text=message, parse_mode="Markdown")
     return ConversationHandler.END
 
+# Pegar chat_id (restrito)
+@restricted
 async def get_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat.id
     await update.message.reply_text(f"O chat_id do grupo é: {chat_id}")
