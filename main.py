@@ -19,11 +19,11 @@ app_web = Flask('')
 def home():
     return "Bot está vivo!"
 
-def run():
-    app_web.run(host='0.0.0.0', port=8080)
+#def run():
+    #app_web.run(host='0.0.0.0', port=8080)
 
-t = threading.Thread(target=run)
-t.start()
+#t = threading.Thread(target=run)
+#t.start()
 # ====================================
 
 # Carrega variáveis de ambiente
@@ -201,4 +201,15 @@ if __name__ == '__main__':
     app.add_handler(checkin_handler)
     app.add_handler(checkout_handler)
     app.add_handler(CommandHandler("getid", get_chat_id))
-    app.run_polling()
+    #app.run_polling()
+    
+    # === Flask Endpoint para receber Webhook ===
+    @app_web.post("/")
+    async def webhook():
+        await app.initialize()
+        await app.process_update(Update.de_json(request.json, app.bot))
+        return "OK", 200
+# Apenas isso ao final do arquivo
+if __name__ == "__main__":
+    app_web.run(host="0.0.0.0", port=8080)
+
